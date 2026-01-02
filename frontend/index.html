@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Resume Screening</title>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.95);
+      width: 100%;
+      max-width: 480px;
+      padding: 50px 40px;
+      border-radius: 24px;
+      box-shadow: 0 30px 70px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .icon-wrapper {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 25px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      color: white;
+    }
+    h1 { margin-bottom: 12px; color: #1a202c; }
+    .subtitle { color: #718096; margin-bottom: 35px; }
+    .input-group { margin-bottom: 24px; }
+    input {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      font-size: 15px;
+    }
+    button {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:disabled { background: #cbd5e0; cursor: not-allowed; }
+    .status {
+      margin-top: 24px;
+      padding: 16px;
+      border-radius: 12px;
+      font-weight: 600;
+      display: none;
+    }
+    .success { background: #d4edda; color: #155724; }
+    .processing { background: #fff3cd; color: #856404; }
+    .error { background: #f8d7da; color: #721c24; }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <div class="icon-wrapper">🤖</div>
+    <h1>AI Resume Screening</h1>
+    <p class="subtitle">Automated resume evaluation & candidate communication</p>
+
+    <div class="input-group">
+      <input id="sheet" placeholder="https://docs.google.com/spreadsheets/..." />
+    </div>
+
+    <button id="submitBtn" onclick="startProcess()">Start Screening</button>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    // ✅ LIVE BACKEND (Render)
+    const API_URL = "https://ai-resume-screening-styc.onrender.com";
+
+    async function startProcess() {
+      const link = document.getElementById("sheet").value.trim();
+      const status = document.getElementById("status");
+      const btn = document.getElementById("submitBtn");
+
+      if (!link || !link.includes("docs.google.com/spreadsheets")) {
+        status.style.display = "block";
+        status.className = "status error";
+        status.innerText = "❌ Please enter a valid Google Sheet link";
+        return;
+      }
+
+      btn.disabled = true;
+      status.style.display = "block";
+      status.className = "status processing";
+      status.innerText = "⏳ Starting resume screening...";
+
+      try {
+        const res = await fetch(`${API_URL}/process`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sheet_link: link })
+        });
+
+        if (!res.ok) throw new Error();
+
+        status.className = "status success";
+        status.innerText =
+          "✅ Processing started successfully. Redirecting to results...";
+
+        // ✅ reliable redirect
+        setTimeout(() => {
+          window.location.href = "results.html";
+        }, 1200);
+
+      } catch (err) {
+        status.className = "status error";
+        status.innerText =
+          "❌ Unable to start process. Please check backend connection.";
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
